@@ -1,0 +1,23 @@
+// A dot file of a 5-switch network
+// Switches' shape and labels are useful for displaying the switch ports
+
+graph MG {
+  node [shape=record]
+  
+  SW1 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:01" priority=32768 xlabel=SW1]
+  SW2 [label="<1>1|<2>2|<3>3|<4>4" mac="00:00:00:00:00:02" priority=32768 xlabel=SW2]
+  SW3 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:03" priority=32768 xlabel=SW3]
+  SW4 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:04" priority=32768 xlabel=SW4]
+  SW5 [label="<1>1" mac="00:00:00:00:00:05" priority=32768 xlabel=SW15]
+
+  SW1:1 -- SW2:3 [speed=100];
+  SW1:2 -- SW3:3 [speed=100];
+  SW1:3 -- SW4:1 [speed=100];
+
+  SW2:1 -- SW3:1 [speed=100];
+  SW2:2 -- SW4:2 [speed=100];
+  SW2:4 -- SW4:3 [speed=100];
+
+  SW3:2 -- SW5:1 [speed=100]; 
+  
+}
