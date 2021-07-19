@@ -74,6 +74,11 @@ Port            Role            Status          Cost
 log file can be produced to show details:
 
 ```
+>python3 stp_simulator.py -i testnet.dot -l DEBUG
+...
+
+more stp_simulator.log
+
 INFO:root:Reading file: testnet.dot
 INFO:root:Simulation starting.
 DEBUG:root:Bridge 32769 boots.
