@@ -160,23 +160,33 @@ class Bridge(object):
         packets.
         """
 
-        my_bpdu = BPDU(self.best_bpdu.root, 0, self.id, 0)
-
         root_port = 0
         min_cost = 2**16
+        min_port = 2**16
         for p in self.ports:
+            my_bpdu = BPDU(self.best_bpdu.root, 0, self.id, 0)
+            
             if self.best_bpdu.root != self.id:
                 my_bpdu.cost = self.best_bpdu.cost + p.cost
 
+            # If this bridge BPDU is better than the BPDU received from the
+            # port, continue sending BPDUs to this port, else stop
+            logging.debug(f"Bridge {self.id} compare {my_bpdu} and {p.best_bpdu}.")
             if my_bpdu.getBest(p.best_bpdu) == my_bpdu:
                 my_bpdu.port = p.num
                 p.sendBPDU(my_bpdu)
                 p.setRole(Port.ROLE_DESG)
                 logging.debug(f"Bridge {self.id} sends BPDU {my_bpdu}.")
             else:
+                if self.best_bpdu.root == self.id:
+                    logging.debug(f"Bridge {self.id} is root but {my_bpdu} and {p.best_bpdu}.")
                 p.setRole(Port.ROLE_UNDESG)
+                # The port with the least cost to Root is the Root Port
+                # If cost is the same, lower-numbered port is selected
                 if self.best_bpdu.cost < min_cost:
                     min_cost = self.best_bpdu.cost
+                    root_port = p.num
+                elif self.best_bpdu.cost == min_cost and p.num < min_port:
                     root_port = p.num
 
         for p in self.ports:
