@@ -4,10 +4,11 @@ This is a Python applications that simulates the spanning tree algorithm used to
 
 The application reads the network representation as a DOT file, similar to the one below:
 
+
+```
 // A dot file of a 5-switch network
 // Switches' shape and labels are useful for displaying the switch ports
 
-```
 graph MG {
   node [shape=record]
 
