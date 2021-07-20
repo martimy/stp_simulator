@@ -1,0 +1,13 @@
+// This is a triangle network.
+graph MG {
+  node [shape=record]
+
+  SW1 [label="<1>1|<2>2" mac="00:00:00:00:00:01" priority=32768 xlabel=SW1]
+  SW2 [label="<1>1|<2>2" mac="00:00:00:00:00:02" priority=32768 xlabel=SW2]
+  SW3 [label="<1>1|<2>2" mac="00:00:00:00:00:03" priority=32768 xlabel=SW3]
+
+  SW1:1 -- SW2:1 [speed=1000];
+  SW1:2 -- SW3:1 [speed=100];
+  SW2:2 -- SW3:2 [speed=1000];
+
+}
