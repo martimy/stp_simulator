@@ -82,7 +82,7 @@ class Port(object):
     """
 
     ROLE_ROOT = "Root Port"
-    ROLE_UNDESG = "Un-designated"
+    ROLE_UNDESG = "Undesignated"
     ROLE_DESG = "Designated"
 
     ST_FORWARD = "Forwarding"
@@ -98,13 +98,13 @@ class Port(object):
         self.num = num
         self.cost = cost
         self.remote_port = None
-        self.best_bpdu = None
-        self.role = Port.ROLE_UNDESG
-        self.status = Port.ST_BLOCKED
+        self.resetSTP()
 
     def resetSTP(self):
         self.best_bpdu = None
         self.role = Port.ROLE_UNDESG
+        self.status = Port.ST_BLOCKED
+        self.cost_to_root = None
 
     def setRemote(self, remote):
         self.remote_port = remote
@@ -179,7 +179,7 @@ class Bridge(object):
                 # If cost is the same, lower-numbered port is selected.
                 # The other port(S) are undesignated.
                 p.setRole(Port.ROLE_UNDESG)
-                root_ports.setdefault(p.best_bpdu.cost, []).append(p.num)
+                root_ports.setdefault(my_bpdu.cost, []).append(p.num)
 
         # Root bridge does not have a root port
         if root_ports:
@@ -190,6 +190,7 @@ class Bridge(object):
             for p in self.ports:
                 if p.num == root_port:
                     p.setRole(Port.ROLE_ROOT)
+                    p.cost_to_root = least_cost
                     break
 
     def findBestBPDU(self):
@@ -214,11 +215,12 @@ class Bridge(object):
         else:
             print(f"The Root bridge is {self.best_bpdu.root}.")
 
-        row_format = "{:<15} " * 4
-        print(row_format.format('Port', 'Role', 'Status', 'Cost'))
-        print("-" * 60)
+        row_format = "{:<8} {:<15} {:<15} {:<8} {:<15}"
+        print(row_format.format('Port', 'Role', 'Status', 'Cost', 'Cost-to-Root'))
+        print("-" * 65)
         for p in sorted(self.ports, key=lambda x: x.num):
-            print(row_format.format(p.num, p.role, p.status, p.cost))
+            ctr = p.cost_to_root if p.cost_to_root else '—'
+            print(row_format.format(p.num, p.role, p.status, p.cost, ctr))
         print()
 
 
