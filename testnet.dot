@@ -8,9 +8,9 @@ graph MG {
   SW2 [label="<1>1|<2>2|<3>3|<4>4" mac="00:00:00:00:00:02" priority=32768 xlabel=SW2]
   SW3 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:03" priority=32768 xlabel=SW3]
   SW4 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:04" priority=32768 xlabel=SW4]
-  SW5 [label="<1>1" mac="00:00:00:00:00:05" priority=32768 xlabel=SW15]
+  SW5 [label="<1>1" mac="00:00:00:00:00:05" priority=32768 xlabel=SW5]
 
-  SW1:1 -- SW2:3 [speed=100];
+  SW1:1 -- SW2:3 [speed=1000];
   SW1:2 -- SW3:3 [speed=100];
   SW1:3 -- SW4:1 [speed=100];
 

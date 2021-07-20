@@ -1,9 +1,7 @@
 # STP_Simulator
 
-This is a Python applications that simulates the spanning tree algorithm used to prevent loops in an Ethernet switched network.
-
-The application reads the network representation as a DOT file, similar to the one below:
-
+This is a Python application that simulates the spanning tree algorithm used to prevent loops in an Ethernet switched network.
+The application reads a network representation as a DOT file, similar to the one below:
 
 ```
 // A dot file of a 5-switch network
@@ -16,7 +14,7 @@ graph MG {
   SW2 [label="<1>1|<2>2|<3>3|<4>4" mac="00:00:00:00:00:02" priority=32768 xlabel=SW2]
   SW3 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:03" priority=32768 xlabel=SW3]
   SW4 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:04" priority=32768 xlabel=SW4]
-  SW5 [label="<1>1" mac="00:00:00:00:00:05" priority=32768 xlabel=SW15]
+  SW5 [label="<1>1" mac="00:00:00:00:00:05" priority=32768 xlabel=SW5]
 
   SW1:1 -- SW2:3 [speed=100];
   SW1:2 -- SW3:3 [speed=100];
@@ -40,24 +38,24 @@ The output looks like the following:
 Bridge: 32769. This bridge is Root.
 Port            Role            Status          Cost
 ------------------------------------------------------------
-1               Designated      Forwarding      19
+1               Designated      Forwarding      4
 2               Designated      Forwarding      19
 3               Designated      Forwarding      19
 
 Bridge: 32770. The Root bridge is 32769.
 Port            Role            Status          Cost
 ------------------------------------------------------------
-3               Root Port       Forwarding      19
 1               Designated      Forwarding      19
 2               Designated      Forwarding      19
+3               Root Port       Forwarding      4
 4               Designated      Forwarding      19
 
 Bridge: 32771. The Root bridge is 32769.
 Port            Role            Status          Cost
 ------------------------------------------------------------
-3               Root Port       Forwarding      19
 1               Un-designated   Blocked         19
 2               Designated      Forwarding      19
+3               Root Port       Forwarding      19
 
 Bridge: 32772. The Root bridge is 32769.
 Port            Role            Status          Cost
@@ -72,14 +70,15 @@ Port            Role            Status          Cost
 1               Root Port       Forwarding      19
 ```
 
-log file can be produced to show details:
+A log file can be produced to show details:
 
 ```
 >python3 stp_simulator.py -i testnet.dot -l DEBUG
-...
+```
 
-more stp_simulator.log
+Which prodcues:
 
+```
 INFO:root:Reading file: testnet.dot
 INFO:root:Simulation starting.
 DEBUG:root:Bridge 32769 boots.
@@ -102,8 +101,8 @@ DEBUG:root:Bridge 32770 sends BPDU [32770, 0, 32770, 4].
 DEBUG:root:Bridge 32771 sends BPDU [32771, 0, 32771, 2].
 DEBUG:root:Entering Step: 1
 DEBUG:root:Bridge 32769 best BPDU is [32769, 0, 32769, 0].
-DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 3].
-DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 2].
 DEBUG:root:Bridge 32772 best BPDU is [32769, 0, 32769, 3].
 DEBUG:root:Bridge 32773 best BPDU is [32771, 0, 32771, 2].
 DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 1].
@@ -115,8 +114,34 @@ DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 4].
 DEBUG:root:Bridge 32771 sends BPDU [32769, 19, 32771, 2].
 DEBUG:root:Entering Step: 2
 DEBUG:root:Bridge 32769 best BPDU is [32769, 0, 32769, 0].
-DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 3].
-DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 2].
+DEBUG:root:Bridge 32772 best BPDU is [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32773 best BPDU is [32769, 19, 32771, 2].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 2].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 1].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 2].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 4].
+DEBUG:root:Bridge 32771 sends BPDU [32769, 19, 32771, 2].
+DEBUG:root:Entering Step: 3
+DEBUG:root:Bridge 32769 best BPDU is [32769, 0, 32769, 0].
+DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 2].
+DEBUG:root:Bridge 32772 best BPDU is [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32773 best BPDU is [32769, 19, 32771, 2].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 2].
+DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 3].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 1].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 2].
+DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 4].
+DEBUG:root:Bridge 32771 sends BPDU [32769, 19, 32771, 2].
+DEBUG:root:Entering Step: 4
+DEBUG:root:Bridge 32769 best BPDU is [32769, 0, 32769, 0].
+DEBUG:root:Bridge 32770 best BPDU is [32769, 0, 32769, 1].
+DEBUG:root:Bridge 32771 best BPDU is [32769, 0, 32769, 2].
 DEBUG:root:Bridge 32772 best BPDU is [32769, 0, 32769, 3].
 DEBUG:root:Bridge 32773 best BPDU is [32769, 19, 32771, 2].
 DEBUG:root:Bridge 32769 sends BPDU [32769, 0, 32769, 1].
@@ -127,4 +152,10 @@ DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 2].
 DEBUG:root:Bridge 32770 sends BPDU [32769, 19, 32770, 4].
 DEBUG:root:Bridge 32771 sends BPDU [32769, 19, 32771, 2].
 INFO:root:Simulation completed.
+```
+
+The simulation steps should be proprtional to the size of the network to ensure that all switches recieve the root's BPDU. Use the option '-s' to change the default number of steps:
+
+```
+>python3 stp_simulator.py -i testnet.dot -s 10
 ```
