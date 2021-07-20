@@ -160,39 +160,37 @@ class Bridge(object):
         packets.
         """
 
-        root_port = 0
-        min_cost = 2**16
-        min_port = 2**16
+        root_ports = {}
         for p in self.ports:
             my_bpdu = BPDU(self.best_bpdu.root, 0, self.id, 0)
-            
+
             if self.best_bpdu.root != self.id:
                 my_bpdu.cost = self.best_bpdu.cost + p.cost
 
             # If this bridge BPDU is better than the BPDU received from the
             # port, continue sending BPDUs to this port, else stop
-            logging.debug(f"Bridge {self.id} compare {my_bpdu} and {p.best_bpdu}.")
             if my_bpdu.getBest(p.best_bpdu) == my_bpdu:
                 my_bpdu.port = p.num
                 p.sendBPDU(my_bpdu)
                 p.setRole(Port.ROLE_DESG)
                 logging.debug(f"Bridge {self.id} sends BPDU {my_bpdu}.")
             else:
-                # if self.best_bpdu.root == self.id:
-                #     logging.debug(f"Bridge {self.id} is root but {my_bpdu} and {p.best_bpdu}.")
-                p.setRole(Port.ROLE_UNDESG)
                 # The port with the least cost to Root is the Root Port
-                # If cost is the same, lower-numbered port is selected
-                if self.best_bpdu.cost < min_cost:
-                    min_cost = self.best_bpdu.cost
-                    root_port = min_port = p.num
-                elif self.best_bpdu.cost == min_cost and p.num < min_port:
-                    root_port = min_port = p.num
+                # If cost is the same, lower-numbered port is selected.
+                # The other port(S) are undesignated.
+                p.setRole(Port.ROLE_UNDESG)
+                root_ports.setdefault(p.best_bpdu.cost, []).append(p.num)
 
-        for p in self.ports:
-            if p.num == root_port:
-                p.setRole(Port.ROLE_ROOT)
-                break
+        # Root bridge does not have a root port
+        if root_ports:
+            # Get the least link cost then get the lower number port
+            least_cost = min(root_ports.keys())
+            root_port = min(root_ports[least_cost])
+
+            for p in self.ports:
+                if p.num == root_port:
+                    p.setRole(Port.ROLE_ROOT)
+                    break
 
     def findBestBPDU(self):
         """
@@ -219,7 +217,7 @@ class Bridge(object):
         row_format = "{:<15} " * 4
         print(row_format.format('Port', 'Role', 'Status', 'Cost'))
         print("-" * 60)
-        for p in self.ports:
+        for p in sorted(self.ports, key=lambda x: x.num):
             print(row_format.format(p.num, p.role, p.status, p.cost))
         print()
 
@@ -316,6 +314,7 @@ def buildNetworkFromDOT(file):
         net.connect(g1, src_port, g2, dst_port, speed)
     return net
 
+
 STEPS = 5
 LOG_FILE = 'stp_simulator.log'
 
@@ -347,14 +346,12 @@ def setArguments():
         print('usage: stp_simulator.py -i <inputfile>')
         sys.exit(0)
 
-    return args.infile, steps 
+    return args.infile, steps
 
 
 if __name__ == "__main__":
 
     infile, steps = setArguments()
-
-
 
     # Build the network
     net = buildNetworkFromDOT(infile)
