@@ -126,7 +126,8 @@ class Bridge(object):
     A Switch.
     """
 
-    def __init__(self, id):
+    def __init__(self, label, id):
+        self.label = label
         self.id = id
         self.ports = []
         self.best_bpdu = None
@@ -209,15 +210,14 @@ class Bridge(object):
         Report bridghe and port status.
         """
 
-        print("Bridge: {}. ".format(self.id), end="")
-        if self.root:
-            print("This bridge is Root.")
-        else:
-            print(f"The Root bridge is {self.best_bpdu.root}.")
+        root_id = "This bridge is Root" if self.root else f"Root ID: {hex(self.best_bpdu.root)}"
+        print(f"Bridge: {self.label}:")
+        print(f"ID: {hex(self.id)}. {root_id}.")
 
         row_format = "{:<8} {:<15} {:<15} {:<8} {:<15}"
+        print("—" * 65)
         print(row_format.format('Port', 'Role', 'Status', 'Cost', 'Cost-to-Root'))
-        print("-" * 65)
+        print("—" * 65)
         for p in sorted(self.ports, key=lambda x: x.num):
             ctr = p.cost_to_root if p.cost_to_root else '—'
             print(row_format.format(p.num, p.role, p.status, p.cost, ctr))
@@ -236,10 +236,10 @@ class Network(object):
     def __init__(self):
         self.bridges = {}
 
-    def getBridge(self, id):
+    def getBridge(self, label, id):
         if id in self.bridges:
             return self.bridges[id]
-        br = Bridge(id)
+        br = Bridge(label, id)
         self.bridges[id] = br
         return br
 
@@ -296,9 +296,10 @@ def buildNetworkFromDOT(file):
     net = Network()
 
     for label, attr in nodes_data:
+        # Concatenating the MAC and Bridge Priority to get Bridge ID 
         mac = attr.get('mac', 'ff:ff:ff:ff:ff:ff').replace('"', '')
         pri = attr.get('priority', '32768')
-        id = int(pri) + int(EUI(mac))
+        id = int(pri) * 2**48 + int(EUI(mac))
         nodes[label] = id
 
     for s, d, attr in edges_data:
@@ -310,8 +311,8 @@ def buildNetworkFromDOT(file):
         dst_node = m[0]
         dst_port = int(m[1])
 
-        g1 = net.getBridge(nodes[src_node])
-        g2 = net.getBridge(nodes[dst_node])
+        g1 = net.getBridge(src_node, nodes[src_node])
+        g2 = net.getBridge(dst_node, nodes[dst_node])
         speed = int(attr['speed'])
         net.connect(g1, src_port, g2, dst_port, speed)
     return net
