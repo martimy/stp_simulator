@@ -64,16 +64,18 @@ class BPDU(object):
             return self
         elif self.root == other.root and self.cost < other.cost:
             return self
-        elif self.cost == other.cost and self.id < other.id:
+        elif self.root == other.root and self.cost == other.cost and self.id < other.id:
             return self
-        elif self.id == other.id and self.port < other.port:
+        elif self.root == other.root and self.cost == other.cost and self.id == other.id and self.port < other.port:
+            return self
+        elif self.root == other.root and self.cost == other.cost and self.id == other.id and self.port == other.port:
             return self
 
         return other
 
     def __str__(self):
         # return f"\033[91m[{self.root}, {self.cost}, {self.id}, {self.port}]\033[0m"
-        return f"[{self.root}, {self.cost}, {self.id}, {self.port}]"
+        return f"[{hex(self.root)}, {self.cost}, {hex(self.id)}, {self.port}]"
 
 
 class Port(object):
@@ -110,13 +112,16 @@ class Port(object):
         self.remote_port = remote
 
     def sendBPDU(self, m):
+        # The best transmitted or received BPDU is saved
         self.best_bpdu = self.best_bpdu.getBest(m) if self.best_bpdu else m
         self.remote_port.receiveBPDU(m)
 
     def receiveBPDU(self, m):
+        # The best transmitted or received BPDU is saved
         self.best_bpdu = self.best_bpdu.getBest(m) if self.best_bpdu else m
 
     def setRole(self, role):
+        # Update switch role and status
         self.role = role
         self.status = self.ROLE_STATUS_MAP[role]
 
@@ -130,7 +135,6 @@ class Bridge(object):
         self.label = label
         self.id = id
         self.ports = []
-        self.best_bpdu = None
 
     def boot(self):
         """
@@ -146,9 +150,9 @@ class Bridge(object):
         for p in self.ports:
             p.resetSTP()
 
-        logging.debug(f"Bridge {self.id} boots.")
+        logging.debug(f"Bridge {hex(self.id)} boots.")
 
-    def sendBPDUs(self):
+    def processBPDUs(self):
         """
         The bridge creates a new BPDU that based on the best received BPDU: 
         <Root ID>.<cost to root + port cost>.<Bridge ID><Port>.
@@ -161,49 +165,49 @@ class Bridge(object):
         packets.
         """
 
-        root_ports = {}
+        best = []
         for p in self.ports:
-            my_bpdu = BPDU(self.best_bpdu.root, 0, self.id, 0)
+            o = p.best_bpdu
+            if o:
+                best.append(BPDU(o.root, o.cost + p.cost, self.id, p.num))
 
-            if self.best_bpdu.root != self.id:
-                my_bpdu.cost = self.best_bpdu.cost + p.cost
+        # Select the best BPDU from all ports
+        best_bpdu = BPDU(self.id, 0, self.id, 0)
+        root_port = None
+        for b in best:
+            if b.getBest(best_bpdu) ==  b:
+                best_bpdu = b
+                root_port = b.port
+        logging.debug(f"Bridge {hex(self.id)} best BPDU is {best_bpdu} via port {root_port}.")
 
-            # If this bridge BPDU is better than the BPDU received from the
-            # port, continue sending BPDUs to this port, else stop
-            if my_bpdu.getBest(p.best_bpdu) == my_bpdu:
-                my_bpdu.port = p.num
-                p.sendBPDU(my_bpdu)
-                p.setRole(Port.ROLE_DESG)
-                logging.debug(f"Bridge {self.id} sends BPDU {my_bpdu}.")
-            else:
-                # The port with the least cost to Root is the Root Port
-                # If cost is the same, lower-numbered port is selected.
-                # The other port(S) are undesignated.
-                p.setRole(Port.ROLE_UNDESG)
-                root_ports.setdefault(my_bpdu.cost, []).append(p.num)
+        self.root = best_bpdu.root == self.id 
 
-        # Root bridge does not have a root port
-        if root_ports:
-            # Get the least link cost then get the lower number port
-            least_cost = min(root_ports.keys())
-            root_port = min(root_ports[least_cost])
+
+        if self.root:
+            logging.debug(f"Bridge {hex(self.id)} is Root bridge.")
+            # to_send = BPDU(self.id, 0, self.id, 0)
 
             for p in self.ports:
-                if p.num == root_port:
+                best_bpdu.port = p.num
+                p.sendBPDU(best_bpdu)
+                p.setRole(Port.ROLE_DESG)
+                logging.debug(f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
+        else:
+            for p in self.ports:
+                # If this bridge BPDU is better than the BPDU received from the
+                # port, send the BPDU, otherwise stop
+                if best_bpdu.getBest(p.best_bpdu) == best_bpdu:
+                    p.sendBPDU(best_bpdu)
+                    p.setRole(Port.ROLE_DESG)
+                    p.cost_to_root = None
+                    logging.debug(f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
+                elif p.num == root_port:
+                    p.cost_to_root = best_bpdu.cost
                     p.setRole(Port.ROLE_ROOT)
-                    p.cost_to_root = least_cost
-                    break
+                else:
+                    p.cost_to_root = None
+                    p.setRole(Port.ROLE_UNDESG)
 
-    def findBestBPDU(self):
-        """
-        The bridge finds the best BPDU received/transmitted on each port.
-        """
-
-        for p in self.ports:
-            self.best_bpdu = self.best_bpdu.getBest(p.best_bpdu)
-        self.root = self.best_bpdu.root == self.id
-
-        logging.debug(f"Bridge {self.id} best BPDU is {self.best_bpdu}.")
 
     def reportSTP(self):
         """
@@ -370,9 +374,7 @@ if __name__ == "__main__":
         logging.debug(f"Entering Step: {i}")
 
         for br in net.getAllBridges():
-            br.findBestBPDU()
-        for br in net.getAllBridges():
-            br.sendBPDUs()
+            br.processBPDUs()
 
     logging.info(f"Simulation completed.")
 
