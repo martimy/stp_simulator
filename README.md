@@ -8,7 +8,7 @@ The spanning tree algorithm is based on the description in *Radia Perlman. 1999.
 ## Known limitations
 
 - Timing and timers are ignored. The simulation will run for x number of steps and produces the results. Make sure that simulation steps are sufficient for the STP to converge.
-- A switch's self-loop is handled correctly.
+- A switch's self-loop is not handled correctly.
 
 ## Example Network
 
