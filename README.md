@@ -1,15 +1,25 @@
-# STP_Simulator
+# STP Simulator
 
 This is a Python application that simulates the spanning tree algorithm used to prevent loops in an Ethernet switched network.
-The application reads a network representation as a DOT file, similar to the one below:
+The application reads a network representation as a DOT file, similar to the one shown below and produces an output showing the role and status of each port of the network switches.
+
+The spanning tree algorithm is based on the description in *Radia Perlman. 1999. Interconnections (2nd ed.): bridges, routers, switches, and internetworking protocols. Addison-Wesley Longman Publishing Co., Inc., USA.*
+
+## Known limitations
+
+- Timing and timers are ignored. The simulation will run for x number of steps and produces the results. Make sure that simulation steps are sufficient for the STP to converge.
+- A switch's self-loop is handled correctly.
+
+## Example Network
 
 ```
 // A dot file of a 5-switch network
-// Switches' shape and labels are useful for displaying the switch ports
+// Switches' shape and labels are useful for displaying the switch ports only,
+// they have no effect on the simulation.
 
 graph MG {
   node [shape=record]
-  
+
   SW1 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:01" priority=28672 xlabel=SW1]
   SW2 [label="<1>1|<2>2|<3>3|<4>4" mac="00:00:00:00:00:02" priority=32768 xlabel=SW2]
   SW3 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:03" priority=32768 xlabel=SW3]
@@ -24,17 +34,30 @@ graph MG {
   SW2:2 -- SW4:2 [speed=1000];
   SW2:4 -- SW4:3 [speed=1000];
 
-  SW3:2 -- SW5:1 [speed=1000]; 
-  
+  SW3:2 -- SW5:1 [speed=1000];
+
 }
 ```
 
 ![Network Example](network.png)
 
-The output looks like the following:
+
+## Installation
+
+- clone this rpository
+- Install required Python modules
+
+## Usage
+
+Run the application with a dot file as an input
 
 ```
->python stp_simulator.py -i testnet.dot
+>python3 stp_simulator.py -i testnet.dot
+```
+
+The output should be similar to this:
+
+```
 Bridge: SW1:
 ID: 0x7000000000000001. This bridge is Root.
 —————————————————————————————————————————————————————————————————
@@ -169,7 +192,7 @@ DEBUG:root:Bridge 0x8000000000000005 best BPDU is [0x7000000000000001, 8, 0x8000
 INFO:root:Simulation completed.
 ```
 
-The simulation steps should be proprtional to the size of the network to ensure that all switches recieve the root's BPDU. Use the option '-s' to change the default number of steps:
+The simulation steps should be proprtional to the size of the network to ensure that all switches receive the root's BPDU. Use the option '-s' to change the default number of steps (5):
 
 ```
 >python3 stp_simulator.py -i testnet.dot -s 10
