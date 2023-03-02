@@ -165,23 +165,27 @@ class Bridge(object):
         packets.
         """
 
-        best = []
-        for p in self.ports:
-            o = p.best_bpdu
-            if o:
-                best.append(BPDU(o.root, o.cost + p.cost, self.id, p.num))
+        # best = []
+        # for p in self.ports:
+        #     if p.best_bpdu:
+        #         best.append(BPDU(p.best_bpdu.root, p.best_bpdu.cost + p.cost, self.id, p.num))
+
+        # Creat a BPDU for each port based on the best BPDU from the port by
+        # adding the port cost and the egress port number.
+        best = [BPDU(p.best_bpdu.root, p.best_bpdu.cost + p.cost,
+                     self.id, p.num) for p in self.ports if p.best_bpdu]
 
         # Select the best BPDU from all ports
         best_bpdu = BPDU(self.id, 0, self.id, 0)
         root_port = None
         for b in best:
-            if b.getBest(best_bpdu) ==  b:
+            if b.getBest(best_bpdu) == b:
                 best_bpdu = b
                 root_port = b.port
-        logging.debug(f"Bridge {hex(self.id)} best BPDU is {best_bpdu} via port {root_port}.")
+        logging.debug(
+            f"Bridge {hex(self.id)} best BPDU is {best_bpdu} via port {root_port}.")
 
-        self.root = best_bpdu.root == self.id 
-
+        self.root = best_bpdu.root == self.id
 
         if self.root:
             logging.debug(f"Bridge {hex(self.id)} is Root bridge.")
@@ -191,23 +195,29 @@ class Bridge(object):
                 best_bpdu.port = p.num
                 p.sendBPDU(best_bpdu)
                 p.setRole(Port.ROLE_DESG)
-                logging.debug(f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
+                logging.debug(
+                    f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
         else:
             for p in self.ports:
                 # If this bridge BPDU is better than the BPDU received from the
                 # port, send the BPDU, otherwise stop
                 if best_bpdu.getBest(p.best_bpdu) == best_bpdu:
+                    # # To prevent self-loop
+                    # if best_bpdu.id == self.id and best_bpdu.port < p.num:
+                    #     print(f"Bridge {hex(self.id)} not sending BPDU {best_bpdu} to port {p.num}.")
+                    #     p.setRole(Port.ROLE_UNDESG)
+                    #     continue    
                     p.sendBPDU(best_bpdu)
                     p.setRole(Port.ROLE_DESG)
                     p.cost_to_root = None
-                    logging.debug(f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
+                    logging.debug(
+                        f"Bridge {hex(self.id)} sends BPDU {best_bpdu} via port {p.num}.")
                 elif p.num == root_port:
                     p.cost_to_root = best_bpdu.cost
                     p.setRole(Port.ROLE_ROOT)
                 else:
                     p.cost_to_root = None
                     p.setRole(Port.ROLE_UNDESG)
-
 
     def reportSTP(self):
         """
@@ -300,7 +310,7 @@ def buildNetworkFromDOT(file):
     net = Network()
 
     for label, attr in nodes_data:
-        # Concatenating the MAC and Bridge Priority to get Bridge ID 
+        # Concatenating the MAC and Bridge Priority to get Bridge ID
         mac = attr.get('mac', 'ff:ff:ff:ff:ff:ff').replace('"', '')
         pri = attr.get('priority', '32768')
         id = int(pri) * 2**48 + int(EUI(mac))

@@ -1,0 +1,19 @@
+// Spine-Leaf topology
+graph MG {
+  node [shape=record]
+
+  Spine1 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:11" priority=32768 xlabel=Spine1]
+  Spine2 [label="<1>1|<2>2|<3>3" mac="00:00:00:00:00:12" priority=32768 xlabel=Spine2]
+  Leaf1 [label="<1>1|<2>2" mac="00:00:00:00:00:21" priority=32768 xlabel=Leaf1]
+  Leaf2 [label="<1>1|<2>2" mac="00:00:00:00:00:22" priority=32768 xlabel=Leaf2]
+  Leaf3 [label="<1>1|<2>2" mac="00:00:00:00:00:23" priority=32768 xlabel=Leaf3]
+
+  Spine1:1 -- Leaf1:1 [speed=1000];
+  Spine1:2 -- Leaf2:1 [speed=1000];
+  Spine1:3 -- Leaf3:1 [speed=1000];
+
+  Spine2:1 -- Leaf1:2 [speed=1000];
+  Spine2:2 -- Leaf2:2 [speed=1000];
+  Spine2:3 -- Leaf3:2 [speed=1000];
+
+}

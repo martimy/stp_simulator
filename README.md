@@ -44,7 +44,7 @@ graph MG {
 
 ## Installation
 
-- clone this rpository
+- clone this repository
 - Install required Python modules
 
 ## Usage
@@ -192,7 +192,7 @@ DEBUG:root:Bridge 0x8000000000000005 best BPDU is [0x7000000000000001, 8, 0x8000
 INFO:root:Simulation completed.
 ```
 
-The simulation steps should be proprtional to the size of the network to ensure that all switches receive the root's BPDU. Use the option '-s' to change the default number of steps (5):
+The simulation steps should be proportional to the size of the network to ensure that all switches receive the root's BPDU. Use the option '-s' to change the default number of steps (5):
 
 ```
 >python3 stp_simulator.py -i testnet.dot -s 10
