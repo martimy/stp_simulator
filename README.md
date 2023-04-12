@@ -52,7 +52,7 @@ graph MG {
 Run the application with a dot file as an input
 
 ```
->python3 stp_simulator.py -i testnet.dot
+>python3 stp_simulator.py -i examples/testnet.dot
 ```
 
 The output should be similar to this:
@@ -60,53 +60,53 @@ The output should be similar to this:
 ```
 Bridge: SW1:
 ID: 0x7000000000000001. This bridge is Root.
-—————————————————————————————————————————————————————————————————
+-----------------------------------------------------------------
 Port     Role            Status          Cost     Cost-to-Root
-—————————————————————————————————————————————————————————————————
-1        Designated      Forwarding      4        —
-2        Designated      Forwarding      4        —
-3        Designated      Forwarding      4        —
+-----------------------------------------------------------------
+1        Designated      Forwarding      4        -
+2        Designated      Forwarding      4        -
+3        Designated      Forwarding      4        -
 
 Bridge: SW2:
-ID: 0x8000000000000002. Root ID: 0x8000000000000002.
-—————————————————————————————————————————————————————————————————
+ID: 0x8000000000000002.
+-----------------------------------------------------------------
 Port     Role            Status          Cost     Cost-to-Root
-—————————————————————————————————————————————————————————————————
-1        Designated      Forwarding      4        —
-2        Designated      Forwarding      4        —
+-----------------------------------------------------------------
+1        Designated      Forwarding      4        -
+2        Designated      Forwarding      4        -
 3        Root Port       Forwarding      4        4
-4        Designated      Forwarding      4        —
+4        Designated      Forwarding      4        -
 
 Bridge: SW3:
-ID: 0x8000000000000003. Root ID: 0x8000000000000003.
-—————————————————————————————————————————————————————————————————
+ID: 0x8000000000000003.
+-----------------------------------------------------------------
 Port     Role            Status          Cost     Cost-to-Root
-—————————————————————————————————————————————————————————————————
-1        Undesignated    Blocked         4        —
-2        Designated      Forwarding      4        —
+-----------------------------------------------------------------
+1        Undesignated    Blocked         4        -
+2        Designated      Forwarding      4        -
 3        Root Port       Forwarding      4        4
 
 Bridge: SW4:
-ID: 0x8000000000000004. Root ID: 0x8000000000000004.
-—————————————————————————————————————————————————————————————————
+ID: 0x8000000000000004.
+-----------------------------------------------------------------
 Port     Role            Status          Cost     Cost-to-Root
-—————————————————————————————————————————————————————————————————
+-----------------------------------------------------------------
 1        Root Port       Forwarding      4        4
-2        Undesignated    Blocked         4        —
-3        Undesignated    Blocked         4        —
+2        Undesignated    Blocked         4        -
+3        Undesignated    Blocked         4        -
 
 Bridge: SW5:
-ID: 0x8000000000000005. Root ID: 0x8000000000000005.
-—————————————————————————————————————————————————————————————————
+ID: 0x8000000000000005.
+-----------------------------------------------------------------
 Port     Role            Status          Cost     Cost-to-Root
-—————————————————————————————————————————————————————————————————
+-----------------------------------------------------------------
 1        Root Port       Forwarding      4        8
 ```
 
 A log file can be produced to show details:
 
 ```
->python3 stp_simulator.py -i testnet.dot -l DEBUG
+>python3 stp_simulator.py -i examples/testnet.dot -l DEBUG
 ```
 
 Which prodcues:

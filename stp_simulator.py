@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright 2021 Maen Artimy
+Copyright 2021-2023 Maen Artimy
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -208,16 +208,17 @@ class Bridge(object):
         Report bridghe and port status.
         """
 
-        root_id = "This bridge is Root" if self.root else f"Root ID: {hex(self.best_bpdu.root)}"
+        root_id = "This bridge is Root." if self.root else ""
+        #f"Root ID: {hex(self.best_bpdu.root)}"
         print(f"Bridge: {self.label}:")
-        print(f"ID: {hex(self.id)}. {root_id}.")
+        print(f"ID: {hex(self.id)}. {root_id}")
 
         row_format = "{:<8} {:<15} {:<15} {:<8} {:<15}"
-        print("—" * 65)
+        print("-" * 65)
         print(row_format.format('Port', 'Role', 'Status', 'Cost', 'Cost-to-Root'))
-        print("—" * 65)
+        print("-" * 65)
         for p in sorted(self.ports, key=lambda x: x.num):
-            ctr = p.cost_to_root if p.cost_to_root else '—'
+            ctr = p.cost_to_root if p.cost_to_root else '-'
             print(row_format.format(p.num, p.role, p.status, p.cost, ctr))
         print()
 
