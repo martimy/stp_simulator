@@ -3,22 +3,22 @@
 """
 Copyright 2021 Maen Artimy
 
-Permission is hereby granted, free of charge, to any person obtaining a 
-copy of this software and associated documentation files (the "Software"), 
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
 to deal in the Software without restriction, including without limitation the
 rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is 
+sell copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all 
+The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
@@ -46,32 +46,16 @@ class BPDU(object):
 
     def getBest(self, other):
         """
-        Given two BPDUs C1 and C2, the best received BPDU is determined as
-        follows:
-        1. Lowest root bridge id: C1 is better than C2 if rootID in C1 is 
-        lower than the rootID in C2
-        2. Lowest root path cost: C1 is better than C2 if cost in C1 is lower 
-        than the cost in C2
-        3. Lowest sender bridge id: C1 is better than C2 if sender bridge ID 
-        in C1 is lower than the sender bridge ID in C2
-        4. Lowest sender port id: C1 is better than C2 if sender bridge port 
-        in C1 is lower than the sender bridge port in C2
+        Given two BPDUs, the best received BPDU must have lowest root bridge
+        ID, or lowest root path cost, or lowest sender bridge ID, or lowest
+        sender port ID in this order.
         """
 
         if not other:
             return self
-        elif self.root < other.root:
-            return self
-        elif self.root == other.root and self.cost < other.cost:
-            return self
-        elif self.root == other.root and self.cost == other.cost and self.id < other.id:
-            return self
-        elif self.root == other.root and self.cost == other.cost and self.id == other.id and self.port < other.port:
-            return self
-        elif self.root == other.root and self.cost == other.cost and self.id == other.id and self.port == other.port:
-            return self
 
-        return other
+        return self if (self.root, self.cost, self.id, self.port) <= (other.root, other.cost, other.id, other.port) else other
+
 
     def __str__(self):
         # return f"\033[91m[{self.root}, {self.cost}, {self.id}, {self.port}]\033[0m"
@@ -138,7 +122,7 @@ class Bridge(object):
 
     def boot(self):
         """
-        When a bridge is booted up, it assumes it is the root and transmits 
+        When a bridge is booted up, it assumes it is the root and transmits
         this BPDU on each port: <Bridge ID>.<0>.<Bridge ID><Port>
         """
 
@@ -154,14 +138,14 @@ class Bridge(object):
 
     def processBPDUs(self):
         """
-        The bridge creates a new BPDU that based on the best received BPDU: 
+        The bridge creates a new BPDU that based on the best received BPDU:
         <Root ID>.<cost to root + port cost>.<Bridge ID><Port>.
-        If the bridge's new BPDU is better than the BPDU it received on a port, 
-        it would transmit the new BPDU, otherwise it will no longer transmit 
+        If the bridge's new BPDU is better than the BPDU it received on a port,
+        it would transmit the new BPDU, otherwise it will no longer transmit
         BPDUs on that port. This port will be either root port or blocked port.
         Ports that are not a root port or blocked port (BP) are designated
-        ports (DP). There must be only one DP per LAN segment. 
-        The bridge will continue sending BPDUs on these ports and forward data 
+        ports (DP). There must be only one DP per LAN segment.
+        The bridge will continue sending BPDUs on these ports and forward data
         packets.
         """
 
@@ -206,7 +190,7 @@ class Bridge(object):
                     # if best_bpdu.id == self.id and best_bpdu.port < p.num:
                     #     print(f"Bridge {hex(self.id)} not sending BPDU {best_bpdu} to port {p.num}.")
                     #     p.setRole(Port.ROLE_UNDESG)
-                    #     continue    
+                    #     continue
                     p.sendBPDU(best_bpdu)
                     p.setRole(Port.ROLE_DESG)
                     p.cost_to_root = None
@@ -373,7 +357,7 @@ if __name__ == "__main__":
     # Build the network
     net = buildNetworkFromDOT(infile)
 
-    logging.info(f"Simulation starting.")
+    logging.info("Simulation starting.")
 
     # Boot switches
     for br in net.getAllBridges():
@@ -386,7 +370,7 @@ if __name__ == "__main__":
         for br in net.getAllBridges():
             br.processBPDUs()
 
-    logging.info(f"Simulation completed.")
+    logging.info("Simulation completed.")
 
     # Print results
     for br in net.getAllBridges():
